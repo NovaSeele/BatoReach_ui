@@ -5,8 +5,6 @@ import Page2 from "components/homepage/page2";
 import Page3 from "components/homepage/page3";
 import { useState } from "react";
 
-import { useState } from "react";
-
 export default function MyProject() {
   const [currentPage, setCurrentPage] = useState(1);
   const [data, setData] = useState({});
