@@ -14,7 +14,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className + ""}>
-        {children}
+        <Header />
+        <main className="flex content pt-[40px] translate-y-12">
+          <SideBar />
+          <div className="ml-[379px] w-full">{children}</div>
+        </main>
       </body>
     </html>
   );
