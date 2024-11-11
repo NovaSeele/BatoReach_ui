@@ -301,14 +301,6 @@ export default function Page2({ onChangePage, data }) {
             allowFullScreen
           ></iframe>
           <div className="flex flex-col gap-4 border-[1px] border-slate-400 w-full h-[80%] overflow-y-auto rounded-lg px-6 py-5">
-            <button
-              onClick={() => {
-                onChangePage(3, data);
-              }}
-              className="w-full rounded-sm text-[#f00] text-[14px] font-[700] py-2 text-center bg-[#F37B8F26]"
-            >
-              Create short
-            </button>
             <div className="flex flex-col">
               <strong className="text-[16px] font-[700]">Title</strong>
               <span>{data.snippet.title}</span>

@@ -176,7 +176,7 @@ export default function SideBar() {
                 />
               </svg>
             </div>
-            <span>Translate</span>
+            <span>Translated</span>
           </a>
           <a
             href="/shorts"

@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const base_url = "https://662f-123-30-177-118.ngrok-free.app"
+const base_url = "https://9d82-116-97-117-125.ngrok-free.app"
 
 export const BetoReach_api = {
     translate: async (video_info) => {
@@ -13,7 +13,18 @@ export const BetoReach_api = {
             params: video_info
         })
     },
-    createShortVideo: async (video_info) => {
-        axios.post(`${base_url}/short_video`, video_info)
+    createShortVideo: async (url) => {
+        try {
+            const res = await axios.get(`${base_url}/short_suggestion?url=${url}`, {
+                headers: {
+                    "ngrok-skip-browser-warning": "69420"
+                }
+            })
+            console.log('short video', res);
+            
+            return res.data
+        } catch (error) {
+            console.log(error);
+        }
     }
 }

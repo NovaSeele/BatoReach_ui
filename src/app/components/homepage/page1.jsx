@@ -1,26 +1,20 @@
-import TranslationItem from "components/translation/Page1Components/translationItem";
+import TranslationItem from "components/common/translationItem";
+import YTVideoItem from "components/common/ytVideoItem";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-
-const apikey = "AIzaSyBFpSqujRWHa3z2nu73mwMFqCL01ib3KSI";
-const yt_api = `https://youtube.googleapis.com/youtube/v3/playlistItems?key=${apikey}&part=snippet&
-playlistId=`
+import { CONSTANTS } from "common/constants";
 
 export default function Page1({ onChangePage }) {
-  
   const [translatedVideo, setTranslatedVideo] = useState([]);
   const [youtubeVideos, setYoutubeVideos] = useState([]);
   const { data: session, status, update } = useSession();
   const user = session?.user;
 
-  console.log(youtubeVideos);
-  
-
   // fetch youtube channel videos
   useEffect(() => {
     if (user) {
       for (const playlistId of user.play_list_id) {
-        fetch(`${yt_api}${playlistId}&maxResults=25`, {
+        fetch(`${CONSTANTS.yt_api}${playlistId}&maxResults=25`, {
           method: "GET",
         })
           .then((response) => response.json())
@@ -30,6 +24,7 @@ export default function Page1({ onChangePage }) {
       } 
     }
   }, []);
+
   const onOpenFile = () => {
     console.log("open file");
     document.querySelector("#upload").click();
@@ -69,6 +64,7 @@ export default function Page1({ onChangePage }) {
         console.error("Error:", error);
       });
   };
+
   return (
     <div>
       <div className="flex justify-between mt-[30px]">
@@ -105,11 +101,11 @@ export default function Page1({ onChangePage }) {
       </div>
       {youtubeVideos?.length > 0 && (
         <div className="mt-[30px] w-full">
-          <h3 className="text-base font-[700]">Youtube Videos</h3>
+          <h3 className="text-base font-[700]">My Youtube Videos</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-[20px]">
             {youtubeVideos.map((item, index) => (
-              <TranslationItem
-                data={item}
+              <YTVideoItem
+                data={item.snippet}
                 onClick={() => onChangePage(2, item)}
                 key={index}
               />

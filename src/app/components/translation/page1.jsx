@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getCurrentUser, getVideosList } from "api/api";
-import TranslationItem from "components/translation/Page1Components/translationItem";
+import TranslationItem from "components/common/translationItem";
 import { useSession } from "next-auth/react";
 
 export default function Page1({ onChangePage }) {
@@ -67,7 +67,7 @@ export default function Page1({ onChangePage }) {
           {videoList.map((item, index) => (
               <TranslationItem
                 data={item}
-                onClick={() => onChangePage(2, item)}
+                onClick={() => onChangePage(3, item)}
                 key={index}
               />
             ))}
