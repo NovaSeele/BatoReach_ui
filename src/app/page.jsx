@@ -3,6 +3,8 @@
 import Page1 from "components/homepage/page1";
 import Page2 from "components/homepage/page2";
 import Page3 from "components/homepage/page3";
+import SideBar from "components/common/sideBar";
+import Banner from "components/common/banner";
 import { useState } from "react";
 
 export default function MyProject() {
@@ -21,5 +23,15 @@ export default function MyProject() {
       return <Page3 onChangePage={onChangePage} data={data} />;
     }
   }
-  return getPage(currentPage);
+  return (
+    <div className="flex row">
+      <SideBar/>
+      <div className="flex-[8]">
+        <Banner label="My Projects">
+          <img src="/images/banner-my-project.png" alt="" />
+        </Banner>
+        {getPage(currentPage)}
+      </div>
+    </div>
+  )
 }

@@ -81,80 +81,76 @@ function popupConfirmUpload({ data, setRequiredConfirm, onAgree }) {
 export default function Page2({ onChangePage, data }) {
   // data có type, và toàn bộ snippet
   const [open, setOpen] = useState(false);
-  const [currLanguage, setCurrLanguage] = useState("en");
+  const [currentLanguage, setcurrentLanguage] = useState("en");
   const [charVoice, setCharVoice] = useState(characters[0]);
   const [loadAudio, setLoadAudio] = useState(false);
-  const [loadVideo, setLoadVideo] = useState(false);
   const [requiredConfirm, setRequiredConfirm] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
-
   const [languages, setLanguages] = useState([]);
-
   const [availableTranslations, setAvailableTranslations] = useState([]);
   const [availableLanguages, setAvailableLanguages] = useState([]);
   const [availableVoices, setAvailableVoices] = useState([]);
-
   const [isLoading, setIsLoading] = useState(false);
   const [videoData, setVideoData] = useState(data);
   const [filteredTranslations, setFilteredTranslations] = useState([]);
-
   const [user, setUser] = useState(null);
 
+  const fetchAvailableTranslations = async () => {
+    try {
+      const videoId = data.snippet.resourceId.videoId;
+      const translations = await getVideos(videoId);
+      setAvailableTranslations(translations);
+
+      // Extract unique languages and voices
+      const uniqueLanguages = [
+        ...new Set(translations.map((t) => t.video_language)),
+      ];
+      const uniqueVoices = [
+        ...new Set(translations.map((t) => t.video_voice)),
+      ];
+
+      // Create arrays of available languages and voices
+      const newLanguages = uniqueLanguages.map((lang) => ({
+        language: lang,
+        languageCode:
+          availableLanguage.find((l) => l.language === lang)?.languageCode ||
+          lang.toLowerCase(),
+      }));
+      const voices = uniqueVoices.map((voice) => ({
+        value: voice,
+        name: voice,
+      }));
+
+      // Update available languages without duplication
+      setAvailableLanguages((prevLanguages) => {
+        const updatedLanguages = [...prevLanguages];
+        newLanguages.forEach((lang) => {
+          if (!updatedLanguages.some((l) => l.language === lang.language)) {
+            updatedLanguages.push(lang);
+          }
+        });
+        return updatedLanguages;
+      });
+
+      setAvailableVoices(voices);
+
+      // Update languages state without duplication
+      setLanguages((prevLanguages) => {
+        const updatedLanguages = [...prevLanguages];
+        newLanguages.forEach((lang) => {
+          if (!updatedLanguages.some((l) => l.language === lang.language)) {
+            updatedLanguages.push(lang);
+          }
+        });
+        return updatedLanguages;
+      });
+    } catch (error) {
+      console.error("Error fetching available translations:", error);
+    }
+  };
+
+
   useEffect(() => {
-    const fetchAvailableTranslations = async () => {
-      try {
-        const videoId = data.snippet.resourceId.videoId;
-        const translations = await getVideos(videoId);
-        setAvailableTranslations(translations);
-
-        // Extract unique languages and voices
-        const uniqueLanguages = [
-          ...new Set(translations.map((t) => t.video_language)),
-        ];
-        const uniqueVoices = [
-          ...new Set(translations.map((t) => t.video_voice)),
-        ];
-
-        // Create arrays of available languages and voices
-        const newLanguages = uniqueLanguages.map((lang) => ({
-          language: lang,
-          languageCode:
-            availableLanguage.find((l) => l.language === lang)?.languageCode ||
-            lang.toLowerCase(),
-        }));
-        const voices = uniqueVoices.map((voice) => ({
-          value: voice,
-          name: voice,
-        }));
-
-        // Update available languages without duplication
-        setAvailableLanguages((prevLanguages) => {
-          const updatedLanguages = [...prevLanguages];
-          newLanguages.forEach((lang) => {
-            if (!updatedLanguages.some((l) => l.language === lang.language)) {
-              updatedLanguages.push(lang);
-            }
-          });
-          return updatedLanguages;
-        });
-
-        setAvailableVoices(voices);
-
-        // Update languages state without duplication
-        setLanguages((prevLanguages) => {
-          const updatedLanguages = [...prevLanguages];
-          newLanguages.forEach((lang) => {
-            if (!updatedLanguages.some((l) => l.language === lang.language)) {
-              updatedLanguages.push(lang);
-            }
-          });
-          return updatedLanguages;
-        });
-      } catch (error) {
-        console.error("Error fetching available translations:", error);
-      }
-    };
-
     fetchAvailableTranslations();
   }, [data.snippet.resourceId.videoId]);
 
@@ -259,7 +255,7 @@ export default function Page2({ onChangePage, data }) {
       if (createdVideo) {
         await fetchUpdatedData();
         setIsLoading(false);
-        setCurrLanguage(language.languageCode);
+        setcurrentLanguage(language.languageCode);
         document.getElementById("player").src = res;
         alert("Video created successfully!");
         setLanguages((prevLanguages) => {
@@ -285,9 +281,6 @@ export default function Page2({ onChangePage, data }) {
 
   return (
     <div className="flex flex-col h-[95vh]">
-      <Banner label="My Projects">
-        <img src="/images/translation_banner.png" alt="" />
-      </Banner>
       <div className="flex flex-col flex-1 mt-[30px]">
         <div className="flex gap-4 items-center">
           <div
@@ -414,13 +407,13 @@ export default function Page2({ onChangePage, data }) {
                   .map((language) => (
                     <span
                       className={`${
-                        language.languageCode === currLanguage
+                        language.languageCode === currentLanguage
                           ? "bg-[#F37B8F26] text-red-600 font-[600]"
                           : "bg-[#D9D9D9] text-black"
                       } rounded-md px-2 py-1 text-[12px] cursor-pointer`}
                       key={language.languageCode}
                       onClick={() => {
-                        setCurrLanguage(language.languageCode);
+                        setcurrentLanguage(language.languageCode);
                         setSelectedLanguage(language);
                       }}
                     >
@@ -443,7 +436,7 @@ export default function Page2({ onChangePage, data }) {
                       key={`available-${index}`}
                       className="bg-[#F37B8F26] text-red-600 rounded-md px-2 py-1 text-[12px] cursor-pointer"
                       onClick={() => {
-                        setCurrLanguage(lang.languageCode);
+                        setcurrentLanguage(lang.languageCode);
                         setSelectedLanguage(lang);
                         setLanguages((prevLanguages) => [
                           ...prevLanguages,
@@ -474,7 +467,7 @@ export default function Page2({ onChangePage, data }) {
                       confirm={(language) => {
                         setSelectedLanguage(language);
                         setLanguages([...languages, language]);
-                        setCurrLanguage(language.languageCode);
+                        setcurrentLanguage(language.languageCode);
                         setOpen(false);
                       }}
                     />
@@ -492,7 +485,7 @@ export default function Page2({ onChangePage, data }) {
                     key={index}
                     className="bg-[#F37B8F26] text-red-600 rounded-md px-2 py-1 text-[12px] cursor-pointer"
                     onClick={() => {
-                      setCurrLanguage(
+                      setcurrentLanguage(
                         availableLanguages.find(
                           (l) => l.language === translation.video_language
                         ).languageCode

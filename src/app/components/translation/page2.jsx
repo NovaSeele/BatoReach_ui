@@ -12,102 +12,31 @@ const characters = [
   { value: "Yukkuri", name: "Yukkuri", src: "/audios/yukkuri.mp3" },
 ];
 
-const availableLanguage = [
-  { language: "Vietnamese", languageCode: "vi" },
-  { language: "English", languageCode: "en" },
-  { language: "Spanish", languageCode: "es" },
-  { language: "French", languageCode: "fr" },
-  { language: "German", languageCode: "de" },
-  { language: "Italian", languageCode: "it" },
-  { language: "Portuguese", languageCode: "pt" },
-  { language: "Polish", languageCode: "pl" },
-  { language: "Turkish", languageCode: "tr" },
-  { language: "Russian", languageCode: "ru" },
-  { language: "Dutch", languageCode: "nl" },
-  { language: "Czech", languageCode: "cs" },
-  { language: "Arabic", languageCode: "ar" },
-  { language: "Chinese", languageCode: "zh-cn" },
-  { language: "Japanese", languageCode: "ja" },
-  { language: "Hungarian", languageCode: "hu" },
-  { language: "Korean", languageCode: "ko" },
-  { language: "Hindi", languageCode: "hi" },
-];
-
-function LanguagesSelection({ languages, confirm }) {
-  return (
-    <div className="absolute bottom-0 translate-y-1/2 left-full flex flex-col mt-2 h-[130px] bg-white shadow-lg overflow-y-scroll hover:*:bg-[#F37B8F26] hover:*:text-red-600 *:cursor-pointer">
-      {languages.map((language) => (
-        <span
-          className=" text-black rounded-md px-2 py-1 text-[12px] "
-          key={language.languageCode}
-          onClick={confirm.bind(null, language)}
-        >
-          {language.language}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-function popupConfirmUpload({ data, setRequiredConfirm, onAgree }) {
-  return (
-    <div className="w-full p-2 absolute top-full left-0 mt-2 flex flex-col items-center bg-white shadow-lg z-10">
-      <strong className="text-black">
-        Translate video to{" "}
-        <span className="text-red-600">{data.language?.language}</span> with{" "}
-        <span className="text-red-600">{data.voice || "Selected Voice"}</span>{" "}
-        voice
-      </strong>
-      <div className="flex gap-2 mt-2">
-        <button
-          className="bg-[#F37B8F] text-white rounded-md px-2 py-1 text-[12px]"
-          onClick={onAgree}
-        >
-          Yes
-        </button>
-        <button
-          onClick={() => {
-            setRequiredConfirm(false);
-          }}
-          className="bg-[#D9D9D9] text-black rounded-md px-2 py-1 text-[12px]"
-        >
-          No
-        </button>
-      </div>
-    </div>
-  );
-}
-
 export default function Page2({ onChangePage, data }) {
   // data có type, và toàn bộ snippet
   const [open, setOpen] = useState(false);
   const [currLanguage, setCurrLanguage] = useState("en");
   const [charVoice, setCharVoice] = useState(characters[0]);
   const [loadAudio, setLoadAudio] = useState(false);
-  const [loadVideo, setLoadVideo] = useState(false);
   const [requiredConfirm, setRequiredConfirm] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
-
   const [languages, setLanguages] = useState([
     { language: "English", languageCode: "en" },
   ]);
-
   const [availableTranslations, setAvailableTranslations] = useState([]);
   const [availableLanguages, setAvailableLanguages] = useState([
     { language: "English", languageCode: "en" },
   ]);
   const [availableVoices, setAvailableVoices] = useState([]);
-
   const [isLoading, setIsLoading] = useState(false);
   const [videoData, setVideoData] = useState(data);
   const [filteredTranslations, setFilteredTranslations] = useState([]);
-
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchAvailableTranslations = async () => {
       try {
-        const videoId = data.videoId;
+        const videoId = data.video_id;
         const translations = await getVideos(videoId);
         setAvailableTranslations(translations);
 
@@ -160,7 +89,7 @@ export default function Page2({ onChangePage, data }) {
     };
 
     fetchAvailableTranslations();
-  }, [data.videoId]);
+  }, [data.video_id]);
 
   useEffect(() => {
     // Filter translations based on selected voice, excluding English
@@ -187,7 +116,7 @@ export default function Page2({ onChangePage, data }) {
 
   const fetchUpdatedData = async () => {
     try {
-      const videoId = videoData.videoId;
+      const videoId = videoData.video_id;
       const translations = await getVideos(videoId);
       setAvailableTranslations(translations);
 
@@ -236,27 +165,22 @@ export default function Page2({ onChangePage, data }) {
     setOpen(false);
     setRequiredConfirm(false);
     setIsLoading(true);
-    {
-      /* http://127.0.0.1:8000/translate
-      http://localhost:8888/test/video */
-    }
     try {
+      // refactor
       const response = await fetch(`
-      http://127.0.0.1:8000/translate?url=${`https://www.youtube.com/watch?v=${data.videoId}`}&language=${
+      http://127.0.0.1:8000/translate?url=${`https://www.youtube.com/watch?v=${data.video_id}`}&language=${
         language.language
-      }&video_type=${data.videoType}&use_captions=${
+      }&video_type=${data.video_type}&use_captions=${
         data.useCaptions ? "True" : "False"
-      }&voice_name=${voice.value}&video_id=${data.videoId || ""}`);
+      }&voice_name=${voice.value}&video_id=${data.video_id || ""}`);
 
       const res = await response.json();
 
       const videoData = {
-        video_id: data.videoId,
-        video_title: data.videoTitle,
-        video_voice: voice.value,
+        ...data, 
+        video_url: res, 
         video_language: language.language,
-        video_type: data.videoType,
-        video_url: res,
+        video_voice: voice.value
       };
 
       const createdVideo = await create_video(videoData, user.username); // Pass username here
@@ -290,9 +214,6 @@ export default function Page2({ onChangePage, data }) {
 
   return (
     <div className="flex flex-col h-[95vh]">
-      <Banner label="My Projects">
-        <img src="/images/translation_banner.png" alt="" />
-      </Banner>
       <div className="flex flex-col flex-1 mt-[30px]">
         <div className="flex gap-4 items-center">
           <div
@@ -307,23 +228,21 @@ export default function Page2({ onChangePage, data }) {
           <iframe
             id="player"
             className="h-[80%] aspect-video rounded-lg"
-            src={`https://www.youtube.com/embed/${data.videoId}`}
+            src={`https://www.youtube.com/embed/${data.video_id}`}
             title="YouTube video player"
             frameBorder="0"
             allowFullScreen
           ></iframe>
           <div className="flex flex-col gap-4 border-[1px] border-slate-400 w-full h-[80%] overflow-y-auto rounded-lg px-6 py-5">
             <button
-              onClick={() => {
-                onChangePage(3, data);
-              }}
+              onClick={() => onChangePage(3, data)}
               className="w-full rounded-sm text-[#f00] text-[14px] font-[700] py-2 text-center bg-[#F37B8F26]"
             >
               Create short
             </button>
             <div className="flex flex-col">
               <strong className="text-[16px] font-[700]">Title</strong>
-              <span>{data.videoTitle}</span>
+              <span>{data.video_title}</span>
             </div>
             <div className="flex flex-col">
               <strong className="text-[16px] font-[700]">Date</strong>

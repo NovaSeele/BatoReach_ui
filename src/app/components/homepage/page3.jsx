@@ -97,9 +97,6 @@ export default function Page3({ data, onChangePage }) {
 
   return (
     <div className="flex flex-col h-[95vh]">
-      <Banner label="My Projects">
-        <img src="/images/translation_banner.png" alt="" />
-      </Banner>
       <div className="flex flex-col flex-1 mt-[30px]">
         <div className="flex gap-4 items-center">
           <div

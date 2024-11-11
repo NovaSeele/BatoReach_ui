@@ -4,7 +4,7 @@ import axios from "axios";
 
 // const API_URL = "https://bato-reach-be.vercel.app";
 
-const API_URL = "http://localhost:8888";
+const API_URL = "http://127.0.0.1:8888";
 
 export const signup = async (userData) => {
   try {
@@ -41,8 +41,10 @@ export const uploadAvatar = async (avatar, token) => {
 
 export const login = async (usernameOrEmail, password) => {
   try {
+    console.log('before axios', usernameOrEmail, password);
+    
     const response = await axios.post(
-      `${API_URL}/token`,
+      API_URL + '/token',
       {
         username: usernameOrEmail,
         password: password,
@@ -53,11 +55,7 @@ export const login = async (usernameOrEmail, password) => {
         },
       }
     );
-    // Set token type = Bearer and store the token in localStorage
-    const { access_token } = response.data;
-    console.log("Logged in successfully:", access_token);
-    // Store the token in localStorage
-    localStorage.setItem("token", access_token);
+    const  { access_token } = response.data;
     return access_token;
   } catch (error) {
     if (error.response) {
@@ -75,7 +73,6 @@ export const getCurrentUser = async (token) => {
         Authorization: `Bearer ${token}`,
       },
     });
-    localStorage.setItem("user", JSON.stringify(response.data));
     return response.data;
   } catch (error) {
     throw new Error(error.response?.data?.detail || "Failed to fetch user");
@@ -185,10 +182,11 @@ export const getVideos = async (videoId) => {
 
 export const getVideosList = async (videoIds) => {
   try {
-    // console.log("Requesting video list with IDs:", videoIds); // Debugging line
     const url = new URL(`${API_URL}/videos/list/`);
     videoIds.forEach(id => url.searchParams.append('video_ids', id));
     const response = await axios.get(url.toString());
+    console.log(response.data, 'response.data');
+    
     return response.data;
   } catch (error) {
     console.error("Error fetching video list:", error.response?.data?.detail || error.message);

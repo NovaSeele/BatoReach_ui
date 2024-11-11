@@ -1,11 +1,12 @@
 "use client";
-
-import Page1 from "components/translation/page1";
-import Page2 from "components/translation/page2";
-import Page3 from "components/translation/page3";
+import Banner from "components/common/banner";
+import SideBar from "components/common/sideBar";
+import Page1 from "components/shorts/page1";
+import Page2 from "components/shorts/page2";
+import Page3 from "components/shorts/page3";
 import { useState } from "react";
 
-export default function TranslationPage() {
+export default function ShortsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [data, setData] = useState({});
   const onChangePage = (page, data) => {
@@ -23,5 +24,15 @@ export default function TranslationPage() {
     }
   }
 
-  return getPage(currentPage);
+  return (
+    <div className="flex row">
+      <SideBar/>
+      <div className="flex-[8]">
+        <Banner label="Shorts">
+        
+        </Banner>
+        {getPage(currentPage)}
+      </div>
+    </div>
+  );
 }

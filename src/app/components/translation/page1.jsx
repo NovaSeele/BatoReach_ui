@@ -1,46 +1,33 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Banner from "components/common/banner";
 import { getCurrentUser, getVideosList } from "api/api";
-import TranslationItem from "components/translation/translationItem";
-import { redirect } from "next/navigation";
+import TranslationItem from "components/translation/Page1Components/translationItem";
+import { useSession } from "next-auth/react";
 
 export default function Page1({ onChangePage }) {
-  const [user, setUser] = useState(null);
   const [videoList, setVideoList] = useState([]);
+  const { data: session, status, update } = useSession();
+  const user = session?.user;
+  const getUserVideoData = () => {
+    if (user) {
+      const videoIds = user.video_ids;
+      getVideosList(videoIds)
+      .then((videos) => {
+        setVideoList(videos); // Set video list
+      })
+      .catch((err) => {
+        window.alert("Failed to fetch user data", err);
+      });
+    }
+  }
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      getCurrentUser(token)
-        .then((data) => {
-          setUser(data);
-          return data.video_ids; // Extract video_ids
-        })
-        .then((videoIds) => {
-          if (videoIds && videoIds.length > 0) {
-            console.log("Sending videoIds:", videoIds); // Debugging line
-            return getVideosList(videoIds); // Fetch video list
-          }
-          return [];
-        })
-        .then((videos) => {
-          setVideoList(videos); // Set video list
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
-    console.log(user);
-    console.log(videoList);
+    getUserVideoData();
   }, []);
 
   return (
     <div>
-      <Banner label="Translated Videos">
-        <img src="/images/translation_banner.png" alt="" />
-      </Banner>
       <div className="flex justify-between mt-[30px]">
         <div className="flex items-center px-4 border-[1px] border-[#777e9066] rounded-md overflow-hidden w-[340px]">
           <img src="/images/search-icon-2.svg" alt="" className="size-6" />
@@ -74,35 +61,18 @@ export default function Page1({ onChangePage }) {
         </div>
       </div>
 
-      {videoList?.length > 0 && (
-        <div className="mt-[30px] w-full">
-          <h3 className="text-base font-[700]">Translated Videos</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-[20px]">
-            {videoList.map((item, index) => (
+      <div className="mt-[30px] w-full">
+        <h3 className="text-base font-[700]">Translated Videos</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-[20px]">
+          {videoList.map((item, index) => (
               <TranslationItem
-                data={{
-                  img: item.video_url, // Assuming video_url is the image URL
-                  title: item.video_title,
-                  date_created: new Date().toLocaleDateString("vi-VN"), // Assuming current date for simplicity
-                }}
-                onClick={() => {
-                  console.log(item);
-                  onChangePage(2, {
-                    ...item,
-                    videoId: item.video_id, // Pass video_id
-                    videoUrl: item.video_url, // Pass video_url
-                    videoTitle: item.video_title, // Pass video_title
-                    videoType: item.video_type, // Pass video_type
-                    useCaptions: item.use_captions, // Pass use_captions
-                    publishedAt: item.published_at || new Date().toISOString(), // Pass published_at or today's date
-                  });
-                }}
+                data={item}
+                onClick={() => onChangePage(2, item)}
                 key={index}
               />
             ))}
           </div>
         </div>
-      )}
     </div>
   );
 }

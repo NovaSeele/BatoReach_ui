@@ -1,47 +1,26 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getCurrentUser, uploadAvatar, addYoutubeChannelID } from "api/api";
-import { useRouter } from "next/navigation";
+import { getuser, uploadAvatar, addYoutubeChannelID } from "api/api";
 import { usePathname } from "next/navigation";
+import { getSession, useSession } from "next-auth/react";
+import { CONSTANTS } from "common/constants";
 
 export default function SideBar() {
-  const [user, setUser] = useState(null);
-  const router = useRouter();
   const [file, setFile] = useState(null);
-  const [token, setToken] = useState(" ");
   const [YTshowInput, setYTshowInput] = useState(false);
   const [YTchannelID, setYTchannelID] = useState("");
   const fileInputRef = useRef(null);
   const pathname = usePathname();
   const [tabId, setTabId] = useState(pathname);
+  const { data: session, status, update } = useSession();
+  const user = session === null? CONSTANTS.guestUser : session.user;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    setToken(token);
-    if (token) {
-      getCurrentUser(token)
-        .then((data) => {
-          setUser(data);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
     if (file) {
       handleUpload(); // Upload the selected file and update the user avatar + re-render with
     }
   }, [file]);
-
-  // const handleAuthAction = () => {
-  //   if (user) {
-  //     logout();
-  //     setUser(null);
-  //     console.log("Logged out successfully");
-  //   } else {
-  //     router.push("/login");
-  //   }
-  // };
 
   const triggerFileInput = () => {
     if (fileInputRef.current) {
@@ -57,33 +36,18 @@ export default function SideBar() {
   };
 
   const handleUpload = async () => {
-    if (file && token) {
+    if (file && user.isLoggedIn) {
       try {
         const updatedUser = await uploadAvatar(file, token);
         console.log("Avatar uploaded successfully:", updatedUser);
-        // Update the currentUser state or UI with the updated user details
-        setUser((prevUser) => ({
-          ...prevUser,
-          avatar: updatedUser.avatar, // Update the avatar URL
-        }));
+        // Update the user state or UI with the updated user details
+        setUser({...updatedUser, isLoggedIn: true});
       } catch (error) {
         console.error("Error uploading avatar:", error.message);
       }
     } else {
       console.error("No file selected or token missing.");
     }
-  };
-
-  const userGuest = {
-    full_name: "Guest",
-    username: "guest",
-    avatar: "/images/guest_icon.png",
-  };
-
-  const currentUser = {
-    ...userGuest,
-    ...user,
-    avatar: user?.avatar || userGuest.avatar, // Use guest avatar if user avatar is null
   };
 
   const triggerYoutubeChannelIDInput = () => {
@@ -116,13 +80,12 @@ export default function SideBar() {
   };
 
   return (
-    <div className="fixed w-[320px] overflow-y-auto pr-[20px] pb-[80px]">
-      {/* User part */}
+    <div className="flex-[2] p-[10px]">
       <div className="flex gap-4">
         <div>
           <button onClick={triggerFileInput} className="p-0">
             <img
-              src={currentUser.avatar}
+              src={user.avatar}
               alt="user profile image"
               className="w-[50px] h-[50px] rounded-full object-cover"
             />
@@ -136,9 +99,9 @@ export default function SideBar() {
         </div>
         <div className="flex flex-col justify-evenly">
           <span className="text-black text-base font-bold">
-            {currentUser.full_name}
+            {user.full_name}
           </span>
-          <span className="text-black opacity-45">@{currentUser.username}</span>
+          <span className="text-black opacity-45">@{user.username}</span>
         </div>
       </div>
       <button
@@ -165,17 +128,10 @@ export default function SideBar() {
           </button>
         </form>
       )}
-      {/* <button
-        className="mt-[20px] text-black text-[14px] font-semibold border-[2px] border-[#F37B8F] rounded-full px-3 py-1"
-        onClick={handleAuthAction}
-      >
-        {user ? "Log out" : "Log in"}
-      </button> */}
-      {/* features */}
       <div className="flex flex-col gap-[10px] mt-[42px]">
         <strong className="text-black text-base font-[700]">Features</strong>
         <ul className="flex flex-col gap-[10px] *:text-base *:text-black *:transition-all *:duration-300 *:font-[400] *:flex *:items-center *:gap-3 *:p-4 *:rounded-md hover:*:bg-slate-200">
-          <a href="/" className={tabId === "/" && "selected_item_sidebar"}>
+          <a href="/" className={tabId === "/" ? "selected_item_sidebar" : ''}>
             <div className="min-w-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -201,7 +157,7 @@ export default function SideBar() {
           </a>
           <a
             href="/translation"
-            className={tabId === "/translation" && "selected_item_sidebar"}
+            className={tabId === "/translation" ? "selected_item_sidebar" : ''}
           >
             <div className="min-w-6">
               <svg
@@ -224,7 +180,7 @@ export default function SideBar() {
           </a>
           <a
             href="/shorts"
-            className={tabId === "/shorts" && "selected_item_sidebar"}
+            className={tabId === "/shorts" ? "selected_item_sidebar" : ''}
           >
             <div className="min-w-6">
               <svg

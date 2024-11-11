@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { login } from "api/api"; // Import the login API function
+import { getCurrentUser, login } from "api/api"; // Import the login API function
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { doCredentialLogin } from "actions";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -13,21 +15,22 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
-
     try {
-      const token = await login(email, password); // Call the login function
-      if (token) {
+      const credentials = {
+        email: email,
+        password: password,
+      }
+      const response = await doCredentialLogin(credentials);
+      
+      if (response.error) {
+        setError(response.error)
+      } else {
         setError(""); // Clear any previous error message
         setSuccess("Logged in successfully!"); // Set success message
-        console.log("Token:", token);
+        router.push("/"); // back to home page
         setTimeout(() => {
-          router.push("/"); // back to home page
+          window.location.reload(); // Reload the page
         }, 2000); // 2 seconds
-      }
-
-      //handle wrong password or email
-      if (!token) {
-        setError("Failed to login. Please check your emails or password.");
       }
 
     } catch (err) {

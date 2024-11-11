@@ -1,57 +1,46 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { getCurrentUser, logout } from "api/api";
 import { useRouter } from "next/navigation";
+import { useSession, getSession } from "next-auth/react";
+import { doLogout } from "actions";
+import { useEffect, useState } from "react";
+
 
 export default function Header() {
-  const [user, setUser] = useState(null);
   const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      getCurrentUser(token)
-        .then((data) => {
-          setUser(data);
-          console.log("User:", data);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
-  }, []);
-
+  const { data: session, status, update } = useSession();
+  
   const handleAuthAction = () => {
-    if (user) {
-      logout();
-      setUser(null);
-      console.log("Logged out successfully");
+    if (status === 'authenticated') {
+      doLogout().then(() => {
+        window.location.reload();
+      });
+      
     } else {
-      router.push("/login");
+      router.push("/auth/login");
     }
   };
 
   const handleSignup = () => {
-    router.push("/signup");
+    router.push("/auth/signup");
   };
 
   return (
-    <div className="fixed z-10 bg-white w-[100vw] mb-[100%] shadow-md">
+    <div className="fixed mt-[-100px] z-10 bg-white w-[100vw] shadow-md">
       <div className="py-[12px] content flex justify-between">
         <img src="/images/favicon.png" className="h-[36px]" alt="" />
         <div className="flex gap-2">
-          <button
+          {status !== 'authenticated' && <button
             className="text-black text-[14px] font-semibold border-[2px] border-[#F37B8F] rounded-full px-3 py-1"
             onClick={handleSignup}
           >
             Sign up
-          </button>
+          </button>}
           <button
             className="text-black text-[14px] font-semibold border-[2px] border-[#F37B8F] rounded-full px-3 py-1"
             onClick={handleAuthAction}
           >
-            {user ? "Log out" : "Log in"}
+            {status === 'authenticated' ? "Log out" : "Log in"}
           </button>
         </div>
       </div>

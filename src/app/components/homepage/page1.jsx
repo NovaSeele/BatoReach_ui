@@ -1,62 +1,33 @@
-import Header from "@/components/common/header";
-import Banner from "components/common/banner";
-import TranslationItem from "components/translation/translationItem";
+import TranslationItem from "components/translation/Page1Components/translationItem";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+
+const apikey = "AIzaSyBFpSqujRWHa3z2nu73mwMFqCL01ib3KSI";
+const yt_api = `https://youtube.googleapis.com/youtube/v3/playlistItems?key=${apikey}&part=snippet&
+playlistId=`
 
 export default function Page1({ onChangePage }) {
-  const apikey = "AIzaSyBFpSqujRWHa3z2nu73mwMFqCL01ib3KSI";
-
-  const translatedVideo = [
-    {
-      img: "/images/translation.png",
-      title: "Translation 1",
-      date_created: "2021-09-01",
-    },
-    {
-      img: "/images/translation.png",
-      title: "Translation 2",
-      date_created: "2021-09-02",
-    },
-    {
-      img: "/images/translation.png",
-      title: "Translation 3",
-      date_created: "2021-09-03",
-    },
-    {
-      img: "/images/translation.png",
-      title: "Translation 4",
-      date_created: "2021-09-04",
-    },
-    {
-      img: "/images/translation.png",
-      title: "Translation 5",
-      date_created: "2021-09-05",
-    },
-    {
-      img: "/images/translation.png",
-      title: "Translation 6",
-      date_created: "2021-09-06",
-    },
-  ];
-
+  
+  const [translatedVideo, setTranslatedVideo] = useState([]);
   const [youtubeVideos, setYoutubeVideos] = useState([]);
+  const { data: session, status, update } = useSession();
+  const user = session?.user;
 
+  console.log(youtubeVideos);
+  
+
+  // fetch youtube channel videos
   useEffect(() => {
-    if (JSON.parse(localStorage.getItem("user"))?.play_list_id) {
-      console.log(localStorage.getItem("user"));
-      fetch(
-        `https://youtube.googleapis.com/youtube/v3/playlistItems?key=${apikey}&part=snippet&playlistId=${
-          JSON.parse(localStorage.getItem("user")).play_list_id[0]
-        }&maxResults=25`,
-        {
+    if (user) {
+      for (const playlistId of user.play_list_id) {
+        fetch(`${yt_api}${playlistId}&maxResults=25`, {
           method: "GET",
-        }
-      )
-        .then((response) => response.json())
-        .then((result) => {
-          console.log(result);
-          setYoutubeVideos(result.items);
-        });
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            setYoutubeVideos(...youtubeVideos, result.items);
+          });
+      } 
     }
   }, []);
   const onOpenFile = () => {
@@ -100,9 +71,6 @@ export default function Page1({ onChangePage }) {
   };
   return (
     <div>
-      <Banner label="My Projects">
-        <img src="/images/banner-my-project.png" alt="" />
-      </Banner>
       <div className="flex justify-between mt-[30px]">
         <div className="flex items-center px-4 border-[1px] border-[#777e9066] rounded-md overflow-hidden w-[340px]">
           <img src="/images/search-icon-2.svg" alt="" className="size-6" />
@@ -141,20 +109,8 @@ export default function Page1({ onChangePage }) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-[20px]">
             {youtubeVideos.map((item, index) => (
               <TranslationItem
-                data={{
-                  img: item.snippet.thumbnails.medium.url,
-                  title: item.snippet.title,
-                  date_created: new Date(
-                    item.snippet.publishedAt
-                  ).toLocaleDateString("vi-VN"),
-                }}
-                onClick={() => {
-                  onChangePage(2, {
-                    ...item,
-                    type: "Youtube link",
-                    use_captions: false,
-                  });
-                }}
+                data={item}
+                onClick={() => onChangePage(2, item)}
                 key={index}
               />
             ))}
