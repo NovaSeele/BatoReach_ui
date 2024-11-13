@@ -2,7 +2,7 @@
 import Banner from "components/common/banner";
 import { useState } from "react";
 import DurationBar from "components/shorts/durationBar";
-import { getCurrentUser, create_audio } from "api/api";
+import { getCurrentUser, create_shorts } from "api/api";
 import { useEffect } from "react";
 
 const musics = [
@@ -74,7 +74,7 @@ export default function Page3({ data, onChangePage }) {
     const result = await res.json();
     setShortsData(result);
 
-    const audioData = {
+    const shortsData = {
       url: result.cloud_path,
       video_type: data.type,
       video_id: data.videoId,
@@ -82,15 +82,15 @@ export default function Page3({ data, onChangePage }) {
       shorts_duration: duration,
     };
 
-    const createdAudio = await create_audio(audioData, user.username);
+    const createdShorts = await create_shorts(shortsData, user.username);
 
-    console.log(audioData);
+    console.log(shortsData);
 
-    if (createdAudio) {
+    if (createdShorts) {
       setIsLoading(false);
-      alert("Audio created successfully!");
+      alert("Shorts created successfully!");
     } else {
-      alert("Failed to create audio. Please try again.");
+      alert("Failed to create shorts. Please try again.");
     }
     document.getElementById("player").src = result;
   };
