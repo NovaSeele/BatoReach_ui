@@ -15,6 +15,7 @@ export default function Page1({ onChangePage }) {
       getVideosList(videoIds)
       .then((videos) => {
         setVideoList(videos); // Set video list
+        console.log(videos, 'videos');
       })
       .catch((err) => {
         window.alert("Failed to fetch user data", err);
