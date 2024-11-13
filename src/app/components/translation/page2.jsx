@@ -228,8 +228,10 @@ export default function Page2({ onChangePage, data }) {
           <iframe
             id="player"
             className="h-[80%] aspect-video rounded-lg"
-            src={`https://www.youtube.com/embed/${data.video_id}`}
-            title="YouTube video player"
+            // src={`https://www.youtube.com/embed/${data.video_id}`}
+            // title="YouTube video player"
+            src={data.video_url}
+            title="Video player"
             frameBorder="0"
             allowFullScreen
           ></iframe>
