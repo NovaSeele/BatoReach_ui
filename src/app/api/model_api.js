@@ -44,5 +44,28 @@ export const BetoReach_api = {
         } catch (error) {
             console.log(error);
         }
+    },
+    cutShort: async (video_info) => {
+        console.log('cut short', video_info);
+
+        try {
+            const res = await axios.get(`${base_url}/cut_shorts`, {
+                params: {
+                    src_url: video_info.src_url,
+                    multiple_video: video_info.multiple_video,
+                    time_stamps: video_info.time_stamps,
+                    transcription: video_info.transcription,
+                    video_id: video_info.video_id,
+                    music_name: video_info.music_name
+                },
+                headers: {
+                    "ngrok-skip-browser-warning": "69420"
+                }
+            });
+            console.log('cut short', res);
+            return res.data;
+        } catch (error) {
+            console.log(error);
+        }
     }
 }

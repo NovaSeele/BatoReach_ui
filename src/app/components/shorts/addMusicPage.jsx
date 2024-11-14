@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { BetoReach_api } from "../../api/model_api";
 
 const musics = [
   { name: "None", value: "none", src: "" },
@@ -21,6 +22,16 @@ export default function AddMusicPage({ data, onChangePage }) {
   const [music, setMusic] = useState(musics[0]);
   const [isPlaying, setIsPlaying] = useState(false);
 
+  const [selectedTimeStamps, setSelectedTimeStamps] = useState([]);
+  const [multipleVideos, setMultipleVideos] = useState(true);
+  const [selectedMusic, setSelectedMusic] = useState(null);
+
+  useEffect(() => {
+    const multipleVideosString = multipleVideos ? "True" : "False";
+    console.log("Multiple Videos:", multipleVideosString);
+    console.log("Selected Time Stamps:", selectedTimeStamps);
+  }, [multipleVideos, selectedTimeStamps]);
+
   const seekTo = (start, end) => {
     setStartTime(start);
     setEndTime(end);
@@ -28,15 +39,39 @@ export default function AddMusicPage({ data, onChangePage }) {
   };
 
   const checkBox = (e) => {
+    let updatedHighlights;
     if (e.target.checked) {
-      setSelectedHighlights([...selectedHighlights, e.target.value]);
+      updatedHighlights = [...selectedHighlights, e.target.value];
     } else {
-      setSelectedHighlights(selectedHighlights.filter((highlight) => highlight !== e.target.value));
+      updatedHighlights = selectedHighlights.filter((highlight) => highlight !== e.target.value);
     }
+    setSelectedHighlights(updatedHighlights);
+
+    const newSelectedTimeStamps = updatedHighlights.map(index => data.time_stamps[index]);
+    setSelectedTimeStamps(newSelectedTimeStamps);
   };
 
-  const submit = () => {
-    console.log('submit', selectedHighlights);
+  const submit = async () => {
+    console.log("selectedHighlights", selectedHighlights);
+
+    const video_info = {
+      src_url: `https://www.youtube.com/watch?v=${data.video_id}`,
+      multiple_video: multipleVideos ? "True" : "False",
+      time_stamps: selectedTimeStamps,
+      transcription: data.transcript,
+      video_id: data.video_id,
+      music_name: selectedMusic?.name || "None",
+    };
+
+    try {
+      setLoading(true);
+      const response = await BetoReach_api.cutShort(video_info);
+      console.log("API Response:", response);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error calling cutShort API:", error);
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,12 +94,14 @@ export default function AddMusicPage({ data, onChangePage }) {
                 className="hover:bg-gray-200 hover:underline cursor-pointer p-2 rounded"
                 onClick={() => seekTo(highlight[0][0], highlight[0][1])}
               >
-                <span>Start: {highlight[0][0]} - End: {highlight[0][1]}</span>
+                <span>
+                  Start: {highlight[0][0]} - End: {highlight[0][1]}
+                </span>
               </div>
             </div>
           ))}
 
-          <strong className="text-[16px] font-[700]">Voices</strong>
+          <strong>VOICE</strong>
           <div className="flex items-center">
             {!isPlaying ? (
               <button
@@ -115,11 +152,16 @@ export default function AddMusicPage({ data, onChangePage }) {
               name=""
               id="char"
               onChange={() => {
+                const selectedOption = musics.find(
+                  (music) => music.src === document.getElementById("char").value
+                );
                 setMusic({
-                  value: musics.find((music) => music.src === document.getElementById("char").value)?.value || "none",
+                  value: selectedOption?.value || "none",
                   src: document.getElementById("char").value || undefined,
                   name: document.getElementById("char").selectedOptions[0].text,
                 });
+                setSelectedMusic(selectedOption);
+                console.log("Selected Music:", selectedOption);
                 setLoadAudio(false);
                 setIsPlaying(false);
               }}
@@ -129,6 +171,17 @@ export default function AddMusicPage({ data, onChangePage }) {
                   {music.name}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <strong>MULTIPLE_VIDEOS</strong>
+          <div className="mt-2">
+            <select
+              className="outline-none"
+              onChange={(e) => setMultipleVideos(e.target.value === "True")}
+            >
+              <option value="True">Có</option>
+              <option value="False">Không</option>
             </select>
           </div>
 
