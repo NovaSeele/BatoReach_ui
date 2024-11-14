@@ -72,22 +72,35 @@ export default function Page1({ onChangePage }) {
         </div>
       </div>
 
-      <div className='my-[10px]'>
-                <input 
-                    className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500" 
-                    placeholder="Paste youtube link here" 
-                    type="text" value={youtubeLink} onChange={(e) => setYoutubeLink(e.target.value)} />
-            </div>
-            {(youtubeLink !== '') && 
-                <div>
-                    <iframe
-                        className='mb-[10px]' 
-                        width="560" 
-                        height="315" 
-                        src={`https://www.youtube.com/embed/${youtubeLink.split('v=')[1]}`} title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                    <button onClick={selectVideoLink} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">OK</button>
-                </div>}
-        
+      <div className="my-[10px]">
+        <input
+          className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500"
+          placeholder="Paste youtube link here"
+          type="text"
+          value={youtubeLink}
+          onChange={(e) => setYoutubeLink(e.target.value)}
+        />
+      </div>
+      {youtubeLink !== "" && (
+        <div>
+          <iframe
+            className="mb-[10px]"
+            width="560"
+            height="315"
+            src={`https://www.youtube.com/embed/${youtubeLink.split("v=")[1]}`}
+            title="YouTube video player"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+          <button
+            onClick={selectVideoLink}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            OK
+          </button>
+        </div>
+      )}
 
       {youtubeVideos?.length > 0 && (
         <div className="mt-[30px] w-full">
@@ -96,7 +109,13 @@ export default function Page1({ onChangePage }) {
             {youtubeVideos.map((item, index) => (
               <YTVideoItem
                 data={item.snippet}
-                onClick={() => onChangePage(2, item)}
+                onClick={() => {
+                  onChangePage(2, {
+                    ...item,
+                    type: "Youtube link",
+                    use_captions: false,
+                  });
+                }}
                 key={index}
               />
             ))}

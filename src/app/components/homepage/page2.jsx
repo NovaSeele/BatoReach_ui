@@ -1,6 +1,8 @@
 import Banner from "components/common/banner";
 import { useState, useEffect } from "react";
 import { create_video, getVideos, getCurrentUser } from "api/api";
+import axios from "axios";
+import { BetoReach_api } from "api/model_api";
 
 const characters = [
   { value: "none", name: "Default" },
@@ -81,83 +83,93 @@ function popupConfirmUpload({ data, setRequiredConfirm, onAgree }) {
 export default function Page2({ onChangePage, data }) {
   // data có type, và toàn bộ snippet
   const [open, setOpen] = useState(false);
-  const [currentLanguage, setcurrentLanguage] = useState("en");
+  const [currLanguage, setCurrLanguage] = useState("en");
   const [charVoice, setCharVoice] = useState(characters[0]);
   const [loadAudio, setLoadAudio] = useState(false);
+  const [loadVideo, setLoadVideo] = useState(false);
   const [requiredConfirm, setRequiredConfirm] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
-  const [languages, setLanguages] = useState([]);
+
+  const [languages, setLanguages] = useState([
+    { language: "English", languageCode: "en" },
+  ]);
+
   const [availableTranslations, setAvailableTranslations] = useState([]);
-  const [availableLanguages, setAvailableLanguages] = useState([]);
+  const [availableLanguages, setAvailableLanguages] = useState([
+    { language: "English", languageCode: "en" },
+  ]);
   const [availableVoices, setAvailableVoices] = useState([]);
+
   const [isLoading, setIsLoading] = useState(false);
   const [videoData, setVideoData] = useState(data);
   const [filteredTranslations, setFilteredTranslations] = useState([]);
+
   const [user, setUser] = useState(null);
 
-  const fetchAvailableTranslations = async () => {
-    try {
-      const videoId = data.snippet.resourceId.videoId;
-      const translations = await getVideos(videoId);
-      setAvailableTranslations(translations);
-
-      // Extract unique languages and voices
-      const uniqueLanguages = [
-        ...new Set(translations.map((t) => t.video_language)),
-      ];
-      const uniqueVoices = [
-        ...new Set(translations.map((t) => t.video_voice)),
-      ];
-
-      // Create arrays of available languages and voices
-      const newLanguages = uniqueLanguages.map((lang) => ({
-        language: lang,
-        languageCode:
-          availableLanguage.find((l) => l.language === lang)?.languageCode ||
-          lang.toLowerCase(),
-      }));
-      const voices = uniqueVoices.map((voice) => ({
-        value: voice,
-        name: voice,
-      }));
-
-      // Update available languages without duplication
-      setAvailableLanguages((prevLanguages) => {
-        const updatedLanguages = [...prevLanguages];
-        newLanguages.forEach((lang) => {
-          if (!updatedLanguages.some((l) => l.language === lang.language)) {
-            updatedLanguages.push(lang);
-          }
-        });
-        return updatedLanguages;
-      });
-
-      setAvailableVoices(voices);
-
-      // Update languages state without duplication
-      setLanguages((prevLanguages) => {
-        const updatedLanguages = [...prevLanguages];
-        newLanguages.forEach((lang) => {
-          if (!updatedLanguages.some((l) => l.language === lang.language)) {
-            updatedLanguages.push(lang);
-          }
-        });
-        return updatedLanguages;
-      });
-    } catch (error) {
-      console.error("Error fetching available translations:", error);
-    }
-  };
-
-
   useEffect(() => {
+    const fetchAvailableTranslations = async () => {
+      try {
+        const videoId = data.snippet.resourceId.videoId;
+        const translations = await getVideos(videoId);
+        setAvailableTranslations(translations);
+
+        // Extract unique languages and voices
+        const uniqueLanguages = [
+          ...new Set(translations.map((t) => t.video_language)),
+        ];
+        const uniqueVoices = [
+          ...new Set(translations.map((t) => t.video_voice)),
+        ];
+
+        // Create arrays of available languages and voices
+        const newLanguages = uniqueLanguages.map((lang) => ({
+          language: lang,
+          languageCode:
+            availableLanguage.find((l) => l.language === lang)?.languageCode ||
+            lang.toLowerCase(),
+        }));
+        const voices = uniqueVoices.map((voice) => ({
+          value: voice,
+          name: voice,
+        }));
+
+        // Update available languages without duplication
+        setAvailableLanguages((prevLanguages) => {
+          const updatedLanguages = [...prevLanguages];
+          newLanguages.forEach((lang) => {
+            if (!updatedLanguages.some((l) => l.language === lang.language)) {
+              updatedLanguages.push(lang);
+            }
+          });
+          return updatedLanguages;
+        });
+
+        setAvailableVoices(voices);
+
+        // Update languages state without duplication
+        setLanguages((prevLanguages) => {
+          const updatedLanguages = [...prevLanguages];
+          newLanguages.forEach((lang) => {
+            if (!updatedLanguages.some((l) => l.language === lang.language)) {
+              updatedLanguages.push(lang);
+            }
+          });
+          return updatedLanguages;
+        });
+      } catch (error) {
+        console.error("Error fetching available translations:", error);
+      }
+    };
+
     fetchAvailableTranslations();
   }, [data.snippet.resourceId.videoId]);
 
   useEffect(() => {
-    // Filter translations based on selected voice
+    // Filter translations based on selected voice, excluding English
     const filtered = availableTranslations.filter(
-      (translation) => translation.video_voice === charVoice.value
+      (translation) =>
+        translation.video_voice === charVoice.value &&
+        translation.video_language !== "English"
     );
     setFilteredTranslations(filtered);
   }, [charVoice, availableTranslations]);
@@ -207,9 +219,7 @@ export default function Page2({ onChangePage, data }) {
         const updatedLanguages = [...prevLanguages];
         languages.forEach((lang) => {
           if (
-            !updatedLanguages.some(
-              (l) => l.languageCode === lang.languageCode
-            )
+            !updatedLanguages.some((l) => l.languageCode === lang.languageCode)
           ) {
             updatedLanguages.push(lang);
           }
@@ -225,21 +235,36 @@ export default function Page2({ onChangePage, data }) {
     console.log(language, voice);
     setOpen(false);
     setRequiredConfirm(false);
-    setIsLoading(true); {
-      /* http://127.0.0.1:8000/translate
-      http://localhost:8888/test/video */
-    }
+    setIsLoading(true);
     try {
-      const response = await fetch(`
-      http://127.0.0.1:8000/translate?url=${`https://www.youtube.com/watch?v=${data.snippet.resourceId.videoId}`}&language=${
-        language.language
-      }&video_type=${data.type}&use_captions=${
-        data.use_captions ? "True" : "False"
-      }&voice_name=${voice.value}&video_id=${
-        data.snippet.resourceId.videoId || ""
-      }`);
+      // const response = await axios.get(
+      //   "https://b38a-116-97-117-125.ngrok-free.app/translate",
+      //   {
+      //     params: {
+      //       url: `https://www.youtube.com/watch?v=${data.snippet.resourceId.videoId}`,
+      //       language: language.language,
+      //       video_type: data.type,
+      //       use_captions: data.use_captions ? "True" : "False",
+      //       voice_name: voice.value,
+      //       video_id: data.snippet.resourceId.videoId || "",
+      //     },
+      //     headers: {
+      //       "ngrok-skip-browser-warning": "69420",
+      //     },
+      //   }
+      // );
 
-      const res = await response.json();
+      // const res = await response.json();
+
+      const video_info = {
+        videoId: data.snippet.resourceId.videoId,
+        language: language.language,
+        video_type: data.type,
+        use_captions: data.use_captions,
+        voice_name: voice.value,
+      };
+
+      const res = await BetoReach_api.translate(video_info); // Use the translate function
 
       const videoData = {
         video_id: data.snippet.resourceId.videoId,
@@ -255,7 +280,7 @@ export default function Page2({ onChangePage, data }) {
       if (createdVideo) {
         await fetchUpdatedData();
         setIsLoading(false);
-        setcurrentLanguage(language.languageCode);
+        setCurrLanguage(language.languageCode);
         document.getElementById("player").src = res;
         alert("Video created successfully!");
         setLanguages((prevLanguages) => {
@@ -281,6 +306,9 @@ export default function Page2({ onChangePage, data }) {
 
   return (
     <div className="flex flex-col h-[95vh]">
+      <Banner label="My Projects">
+        <img src="/images/translation_banner.png" alt="" />
+      </Banner>
       <div className="flex flex-col flex-1 mt-[30px]">
         <div className="flex gap-4 items-center">
           <div
@@ -301,6 +329,14 @@ export default function Page2({ onChangePage, data }) {
             allowFullScreen
           ></iframe>
           <div className="flex flex-col gap-4 border-[1px] border-slate-400 w-full h-[80%] overflow-y-auto rounded-lg px-6 py-5">
+            <button
+              onClick={() => {
+                onChangePage(3, data);
+              }}
+              className="w-full rounded-sm text-[#f00] text-[14px] font-[700] py-2 text-center bg-[#F37B8F26]"
+            >
+              Create short
+            </button>
             <div className="flex flex-col">
               <strong className="text-[16px] font-[700]">Title</strong>
               <span>{data.snippet.title}</span>
@@ -399,13 +435,13 @@ export default function Page2({ onChangePage, data }) {
                   .map((language) => (
                     <span
                       className={`${
-                        language.languageCode === currentLanguage
+                        language.languageCode === currLanguage
                           ? "bg-[#F37B8F26] text-red-600 font-[600]"
                           : "bg-[#D9D9D9] text-black"
                       } rounded-md px-2 py-1 text-[12px] cursor-pointer`}
                       key={language.languageCode}
                       onClick={() => {
-                        setcurrentLanguage(language.languageCode);
+                        setCurrLanguage(language.languageCode);
                         setSelectedLanguage(language);
                       }}
                     >
@@ -428,7 +464,7 @@ export default function Page2({ onChangePage, data }) {
                       key={`available-${index}`}
                       className="bg-[#F37B8F26] text-red-600 rounded-md px-2 py-1 text-[12px] cursor-pointer"
                       onClick={() => {
-                        setcurrentLanguage(lang.languageCode);
+                        setCurrLanguage(lang.languageCode);
                         setSelectedLanguage(lang);
                         setLanguages((prevLanguages) => [
                           ...prevLanguages,
@@ -459,7 +495,7 @@ export default function Page2({ onChangePage, data }) {
                       confirm={(language) => {
                         setSelectedLanguage(language);
                         setLanguages([...languages, language]);
-                        setcurrentLanguage(language.languageCode);
+                        setCurrLanguage(language.languageCode);
                         setOpen(false);
                       }}
                     />
@@ -477,7 +513,7 @@ export default function Page2({ onChangePage, data }) {
                     key={index}
                     className="bg-[#F37B8F26] text-red-600 rounded-md px-2 py-1 text-[12px] cursor-pointer"
                     onClick={() => {
-                      setcurrentLanguage(
+                      setCurrLanguage(
                         availableLanguages.find(
                           (l) => l.language === translation.video_language
                         ).languageCode
