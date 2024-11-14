@@ -71,8 +71,8 @@ export default function DashboardPage({ onChangePage }) {
                         <ShortsItem
                             data={item}
                             onClick={() => {
-                                const url = [item.url]
-                                onChangePage(4, url)
+                                const url = [item.url];
+                                onChangePage(4, url);
                             }}
                             key={index}
                         />

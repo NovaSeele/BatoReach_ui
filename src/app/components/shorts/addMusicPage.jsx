@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { BetoReach_api } from "../../api/model_api";
+import { create_shorts } from "../../api/api";
+import { useSession } from "next-auth/react";
 
 const musics = [
   { name: "None", value: "none", src: "" },
@@ -25,6 +27,9 @@ export default function AddMusicPage({ data, onChangePage }) {
   const [selectedTimeStamps, setSelectedTimeStamps] = useState([]);
   const [multipleVideos, setMultipleVideos] = useState(true);
   const [selectedMusic, setSelectedMusic] = useState(null);
+    
+  const { data: session, status, update } = useSession();
+  const user = session?.user;
 
   useEffect(() => {
     const multipleVideosString = multipleVideos ? "True" : "False";
@@ -67,8 +72,35 @@ export default function AddMusicPage({ data, onChangePage }) {
     try {
       setLoading(true);
       const response = await BetoReach_api.cutShort(video_info);
-      console.log("API Response:", response);
-      onChangePage(4, response.cloud_path)
+
+      // Log the entire response to inspect its structure
+      console.log("cutShort API Response:", response);
+
+      console.log("cloud_path", response.cloud_path);
+      console.log("short_description", response.short_description);
+      console.log("short_title", response.short_title);
+
+      // Removed the condition checking array lengths
+      for (let i = 0; i < response.cloud_path.length; i++) {
+        const shorts_info = {
+          url: response.cloud_path[i],
+          video_type: "shorts_video_youtube",
+          video_id: data.video_id,
+          music_name: selectedMusic?.value || "None",
+          shorts_duration: data.duration ? data.duration : null,
+          language: data.language,
+          short_description: response.short_description[i],
+          short_title: response.short_title[i],
+        };
+
+        try {
+          const shortsResponse = await create_shorts(shorts_info, user.username);
+          console.log("Shorts created:", shortsResponse);
+        } catch (error) {
+          console.error("Error calling create_shorts API:", error);
+        }
+      }
+
       setLoading(false);
     } catch (error) {
       console.error("Error calling cutShort API:", error);

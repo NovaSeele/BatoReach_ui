@@ -214,3 +214,12 @@ export const getShortsList = async (shortIds) => {
     throw error;
   }
 }
+
+export const getShortInfo = async (url) => {
+  try {
+    const response = await axios.get(`${API_URL}/shorts/info/?url=${url}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+}
