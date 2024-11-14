@@ -1,6 +1,8 @@
+"use client"
+
 import Banner from "components/common/banner";
 import { useState, useEffect, useCallback } from "react";
-import { create_video, getVideos, getCurrentUser } from "api/api";
+import { create_video, getVideos } from "api/api";
 import axios from "axios";
 import { BetoReach_api } from "api/model_api";
 
@@ -79,6 +81,7 @@ function popupConfirmUpload({ data, setRequiredConfirm, onAgree }) {
     </div>
   );
 }
+import { useSession } from "next-auth/react";
 
 export default function Page2({ onChangePage, data }) {
   // data có type, và toàn bộ snippet
@@ -89,7 +92,9 @@ export default function Page2({ onChangePage, data }) {
   const [loadVideo, setLoadVideo] = useState(false);
   const [requiredConfirm, setRequiredConfirm] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(null);
-
+  const { data: session, status, update } = useSession();
+  const user = session?.user;
+  
   const [languages, setLanguages] = useState([
     { language: "English", languageCode: "en" },
   ]);
@@ -104,7 +109,6 @@ export default function Page2({ onChangePage, data }) {
   const [videoData, setVideoData] = useState(data);
   const [filteredTranslations, setFilteredTranslations] = useState([]);
 
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchAvailableTranslations = async () => {
@@ -174,19 +178,6 @@ export default function Page2({ onChangePage, data }) {
     setFilteredTranslations(filtered);
   }, [charVoice, availableTranslations]);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      getCurrentUser(token)
-        .then((data) => {
-          setUser(data);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
-  }, []);
-
   const fetchUpdatedData = async () => {
     try {
       const videoId = videoData.snippet.resourceId.videoId;
@@ -237,25 +228,6 @@ export default function Page2({ onChangePage, data }) {
     setRequiredConfirm(false);
     setIsLoading(true);
     try {
-      // const response = await axios.get(
-      //   "https://b38a-116-97-117-125.ngrok-free.app/translate",
-      //   {
-      //     params: {
-      //       url: `https://www.youtube.com/watch?v=${data.snippet.resourceId.videoId}`,
-      //       language: language.language,
-      //       video_type: data.type,
-      //       use_captions: data.use_captions ? "True" : "False",
-      //       voice_name: voice.value,
-      //       video_id: data.snippet.resourceId.videoId || "",
-      //     },
-      //     headers: {
-      //       "ngrok-skip-browser-warning": "69420",
-      //     },
-      //   }
-      // );
-
-      // const res = await response.json();
-
       const video_info = {
         videoId: data.snippet.resourceId.videoId,
         language: language.language,
@@ -265,7 +237,8 @@ export default function Page2({ onChangePage, data }) {
       };
 
       const res = await BetoReach_api.translate(video_info); // Use the translate function
-
+      console.log('translate done');
+      
       const videoData = {
         video_id: data.snippet.resourceId.videoId,
         video_title: data.snippet.title,
@@ -276,9 +249,12 @@ export default function Page2({ onChangePage, data }) {
       };
 
       const createdVideo = await create_video(videoData, user.username); // Pass username here
-
+      console.log('create done');
+      
       if (createdVideo) {
         await fetchUpdatedData();
+        console.log('fetch update data?');
+        
         setIsLoading(false);
         setCurrLanguage(language.languageCode);
         document.getElementById("player").src = res;

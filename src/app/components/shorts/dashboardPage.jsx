@@ -70,7 +70,10 @@ export default function DashboardPage({ onChangePage }) {
                     {shortsList.map((item, index) => (
                         <ShortsItem
                             data={item}
-                            onClick={() => onChangePage(4, item)}
+                            onClick={() => {
+                                const url = [item.url]
+                                onChangePage(4, url)
+                            }}
                             key={index}
                         />
                     ))}

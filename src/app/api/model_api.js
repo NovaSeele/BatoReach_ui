@@ -4,6 +4,8 @@ const base_url = "https://b38a-116-97-117-125.ngrok-free.app"
 
 export const BetoReach_api = {
     translate: async (video_info) => {
+        console.log('translate api called');
+        
         try {
             const response = await axios.get(`${base_url}/translate`, {
                 params: {
@@ -18,7 +20,9 @@ export const BetoReach_api = {
                     "ngrok-skip-browser-warning": "69420",
                 },
             });
-            return response.json();
+            console.log('translate api res', response);
+            
+            return response.data.cloud_path;
         } catch (error) {
             console.error("Error in translation request:", error);
             throw error;
@@ -47,21 +51,18 @@ export const BetoReach_api = {
     },
     cutShort: async (video_info) => {
         console.log('cut short', video_info);
+        const jsonStr = JSON.stringify(video_info)
+
+        const formData = new FormData()
+        formData.append('data', jsonStr)
 
         try {
-            const res = await axios.get(`${base_url}/cut_shorts`, {
-                params: {
-                    src_url: video_info.src_url,
-                    multiple_video: video_info.multiple_video,
-                    time_stamps: video_info.time_stamps,
-                    transcription: video_info.transcription,
-                    video_id: video_info.video_id,
-                    music_name: video_info.music_name
-                },
+            const res = await axios.post(`${base_url}/cut_shorts`, formData, {
                 headers: {
                     "ngrok-skip-browser-warning": "69420"
                 }
-            });
+            }
+            );
             console.log('cut short', res);
             return res.data;
         } catch (error) {

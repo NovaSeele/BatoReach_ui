@@ -60,13 +60,15 @@ export default function AddMusicPage({ data, onChangePage }) {
       time_stamps: selectedTimeStamps,
       transcription: data.transcript,
       video_id: data.video_id,
-      music_name: selectedMusic?.name || "None",
+      music_name: selectedMusic?.value || "None",
+      language: data.language
     };
 
     try {
       setLoading(true);
       const response = await BetoReach_api.cutShort(video_info);
       console.log("API Response:", response);
+      onChangePage(4, response.cloud_path)
       setLoading(false);
     } catch (error) {
       console.error("Error calling cutShort API:", error);
