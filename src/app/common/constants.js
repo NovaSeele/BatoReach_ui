@@ -6,5 +6,6 @@ export const CONSTANTS = {
         full_name: 'Guest',
         avatar: 'https://cdn.iconscout.com/icon/free/png-256/avatar-370-456322.png',
     },
-    yt_api: `https://youtube.googleapis.com/youtube/v3/playlistItems?key=${apikey}&part=snippet&playlistId=`
+    yt_playlist_api: `https://youtube.googleapis.com/youtube/v3/playlistItems?key=${apikey}&part=snippet&playlistId=`,
+    yt_video_api: `https://www.googleapis.com/youtube/v3/videos?part=snippet&key=${apikey}&id=`,
 }

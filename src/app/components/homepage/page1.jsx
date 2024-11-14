@@ -5,65 +5,36 @@ import { useSession } from "next-auth/react";
 import { CONSTANTS } from "common/constants";
 
 export default function Page1({ onChangePage }) {
-  const [translatedVideo, setTranslatedVideo] = useState([]);
+  const [youtubeLink, setYoutubeLink] = useState('');
   const [youtubeVideos, setYoutubeVideos] = useState([]);
   const { data: session, status, update } = useSession();
   const user = session?.user;
 
-  // fetch youtube channel videos
-  useEffect(() => {
+  const fetchYoutubePlaylist = async () => {
     if (user) {
       for (const playlistId of user.play_list_id) {
-        fetch(`${CONSTANTS.yt_api}${playlistId}&maxResults=25`, {
-          method: "GET",
-        })
-          .then((response) => response.json())
-          .then((result) => {
-            setYoutubeVideos(...youtubeVideos, result.items);
-          });
+        const response = await fetch(`${CONSTANTS.yt_playlist_api}${playlistId}&maxResults=30`, {method: "GET"})
+        const result = await response.json()  
+        setYoutubeVideos((prev) => [...prev, ...result.items]);
       } 
     }
+  }
+
+  useEffect(() => {
+    fetchYoutubePlaylist();
   }, []);
 
-  const onOpenFile = () => {
-    console.log("open file");
-    document.querySelector("#upload").click();
-  };
+  const selectVideoLink = async () => {
+    const video = await fetch(`${CONSTANTS.yt_video_api}${youtubeLink.split('v=')[1]}`, {method: "GET"})
+    const result = await video.json()
+    if(result.items.length > 0) {
+      result.items[0].snippet.resourceId = {videoId: youtubeLink.split('v=')[1]} 
+      onChangePage(2, result.items[0])
+    } else {
+      alert('Invalid video link')
+    }    
+  }
 
-  const handleUpload = (e) => {
-    const file = e.target.files[0];
-    const formdata = new FormData();
-    formdata.append("file", file);
-    formdata.append("api_key", "764383437531566");
-    formdata.append("upload_preset", "sicsqfql");
-    let res = undefined;
-    fetch("https://api.cloudinary.com/v1_1/dyimxwdfv/video/upload", {
-      method: "POST",
-      body: formdata,
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        console.log(result);
-        res = result;
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-    fetch("http://127.0.0.1:8000/translate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(res),
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        console.log(result);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
 
   return (
     <div>
@@ -78,6 +49,7 @@ export default function Page1({ onChangePage }) {
             className="mr-auto py-2 pl-[14px] border-none outline-none placeholder:text-[14px] placeholder:font-[700] placeholder:text-[#00000066]"
           />
         </div>
+
         <div className="flex items-center gap-3 w-[200px] border-[#777e9066] border-[1px] rounded-md py-[10px] px-4">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -99,6 +71,24 @@ export default function Page1({ onChangePage }) {
           />
         </div>
       </div>
+
+      <div className='my-[10px]'>
+                <input 
+                    className="w-full border border-gray-300 p-2 rounded focus:outline-none focus:border-blue-500" 
+                    placeholder="Paste youtube link here" 
+                    type="text" value={youtubeLink} onChange={(e) => setYoutubeLink(e.target.value)} />
+            </div>
+            {(youtubeLink !== '') && 
+                <div>
+                    <iframe
+                        className='mb-[10px]' 
+                        width="560" 
+                        height="315" 
+                        src={`https://www.youtube.com/embed/${youtubeLink.split('v=')[1]}`} title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <button onClick={selectVideoLink} className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">OK</button>
+                </div>}
+        
+
       {youtubeVideos?.length > 0 && (
         <div className="mt-[30px] w-full">
           <h3 className="text-base font-[700]">My Youtube Videos</h3>
@@ -113,43 +103,6 @@ export default function Page1({ onChangePage }) {
           </div>
         </div>
       )}
-      {translatedVideo.length > 0 && (
-        <div className="mt-[30px] w-full">
-          <h3 className="text-base font-[700]">Translated Videos</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-[20px]">
-            <div className="cursor-pointer" onClick={onOpenFile}>
-              <div className="w-full aspect-video rounded-md bg-slate-300 flex items-center justify-center">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="40"
-                  height="40"
-                  viewBox="0 0 40 40"
-                  fill="none"
-                >
-                  <path
-                    d="M18.333 21.6666H8.33301V18.3333H18.333V8.33325H21.6663V18.3333H31.6663V21.6666H21.6663V31.6666H18.333V21.6666Z"
-                    fill="black"
-                    fillOpacity="0.6"
-                  />
-                </svg>
-              </div>
-              <div className="flex justify-between mt-[10px]">
-                <h4 className="text-base font-[700]">Translate video</h4>
-              </div>
-            </div>
-            {translatedVideo.map((item, index) => (
-              <TranslationItem data={item} key={index} />
-            ))}
-          </div>
-        </div>
-      )}
-      <input
-        type="file"
-        name="upload"
-        id="upload"
-        className="hidden"
-        onChange={handleUpload}
-      />
     </div>
   );
 }

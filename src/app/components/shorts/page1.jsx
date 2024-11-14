@@ -16,7 +16,7 @@ export default function Page1({ onChangePage }) {
     useEffect(() => {
         if (user) {
             for (const playlistId of user.play_list_id) {
-              fetch(`${CONSTANTS.yt_api}${playlistId}&maxResults=25`, {
+              fetch(`${CONSTANTS.yt_playlist_api}${playlistId}&maxResults=25`, {
                 method: "GET",
               })
                 .then((response) => response.json())
