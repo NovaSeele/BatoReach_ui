@@ -1,7 +1,7 @@
 "use client";
 import Banner from "components/common/banner";
 import { useState } from "react";
-import DurationBar from "components/shorts/durationBar";
+import DurationBar from "components/shorts/component/durationBar";
 import { getCurrentUser, create_audio } from "api/api";
 import { useEffect } from "react";
 

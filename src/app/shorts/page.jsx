@@ -1,9 +1,10 @@
 "use client";
 import Banner from "components/common/banner";
 import SideBar from "components/common/sideBar";
-import Page1 from "components/shorts/page1";
-import Page2 from "components/shorts/page2";
-import Page3 from "components/shorts/page3";
+import DashboradPage from "components/shorts/dashboardPage";
+import SuggestPage from "components/shorts/suggestPage";
+import AddMusicPage from "components/shorts/addMusicPage";
+import ResultPage from "components/shorts/resultPage";
 import { useState } from "react";
 
 export default function ShortsPage() {
@@ -16,11 +17,13 @@ export default function ShortsPage() {
 
   function getPage(currentPage) {
     if (currentPage === 1) {
-      return <Page1 onChangePage={onChangePage} />;
+      return <DashboradPage onChangePage={onChangePage} />;
     } else if (currentPage === 2) {
-      return <Page2 onChangePage={onChangePage} data={data} />;
+      return <SuggestPage onChangePage={onChangePage} data={data} />;
     } else if (currentPage === 3) {
-      return <Page3 onChangePage={onChangePage} data={data} />;
+      return <AddMusicPage onChangePage={onChangePage} data={data} />;
+    } else if (currentPage === 4) {
+      return <ResultPage onChangePage={onChangePage} data={data} />;
     }
   }
 

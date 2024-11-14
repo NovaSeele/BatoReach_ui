@@ -1,70 +1,11 @@
 // Display translated video
 "use client";
 import { useState } from "react";
-import DurationBar from "components/shorts/durationBar";
-import { getCurrentUser, create_shorts } from "api/api";
+import { getCurrentUser, create_audio } from "api/api";
 import { useEffect } from "react";
 
 export default function Page3({ data, onChangePage }) {
-  const [duration, setDuration] = useState(10);
-  const [music, setMusic] = useState(musics[0]);
-  const [loadAudio, setLoadAudio] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState({});
-  const [user, setUser] = useState(null);
-  const [shortsData, setShortsData] = useState({
-    short_title: "hello",
-    cloud_path: undefined,
-    short_description: "Tất cả là tại đậu xanh",
-  });
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      getCurrentUser(token)
-        .then((data) => {
-          setUser(data);
-        })
-        .catch((err) => {
-          console.error(err);
-        });
-    }
-  }, []);
-
-  {
-    /* http://127.0.0.1:8000/shorts http://localhost:8888/test */
-  }
-  const generateShorts = async () => {
-    setIsLoading(true);
-    const res = await fetch(` 
-      http://127.0.0.1:8000/shorts?url=${`https://www.youtube.com/watch?v=${data.snippet.resourceId.videoId}`}&video_type=${
-      data.type
-    }&video_id=${data.videoId}&music_name=${
-      music.value
-    }&short_duration=${duration}`);
-    const result = await res.json();
-    setShortsData(result);
-
-    const shortsData = {
-      url: result.cloud_path,
-      video_type: data.type,
-      video_id: data.videoId,
-      music_name: music.name,
-      shorts_duration: duration,
-    };
-
-    const createdShorts = await create_shorts(shortsData, user.username);
-
-    console.log(shortsData);
-
-    if (createdShorts) {
-      setIsLoading(false);
-      alert("Shorts created successfully!");
-    } else {
-      alert("Failed to create shorts. Please try again.");
-    }
-    document.getElementById("player").src = result;
-  };
+  console.log(data);
 
   return (
     <div className="flex flex-col h-[95vh]">

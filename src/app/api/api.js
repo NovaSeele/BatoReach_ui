@@ -208,7 +208,6 @@ export const getShortsList = async (shortIds) => {
     const url = new URL(`${API_URL}/shorts/list/`);
     shortIds.forEach(id => url.searchParams.append('short_ids', id));
     const response = await axios.get(url.toString());
-    console.log(response.data, 'response.data');
     return response.data;
   } catch (error) {
     console.error("Error fetching short list:", error.response?.data?.detail || error.message);
