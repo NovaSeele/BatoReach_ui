@@ -147,11 +147,11 @@ export const create_video = async (videoData, username) => {
   }
 };
 
-export const create_audio = async (audioData, username) => {
+export const create_shorts = async (shortsData, username) => {
   try {
-    const payload = username ? { ...audioData } : audioData;
+    const payload = username ? { ...shortsData } : shortsData;
     const response = await axios.post(
-      `${API_URL}/audios/?username=${username}`,
+      `${API_URL}/shorts/?username=${username}`,
       payload,
       {
         headers: {
@@ -162,9 +162,9 @@ export const create_audio = async (audioData, username) => {
     return response.data;
   } catch (error) {
     if (error.response) {
-      console.error("Audio creation failed:", error.response.data.detail);
+      console.error("Shorts creation failed:", error.response.data.detail);
     } else {
-      console.error("Error occurred during audio creation:", error.message);
+      console.error("Error occurred during shorts creation:", error.message);
     }
     throw error;
   }
@@ -180,16 +180,38 @@ export const getVideos = async (videoId) => {
   }
 };
 
+export const getShorts = async (shortsId) => {
+  try {
+    const response = await axios.get(`${API_URL}/shorts/${shortsId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching shorts:", error.response.data.detail);
+    throw error;
+  }
+};
+
 export const getVideosList = async (videoIds) => {
   try {
     const url = new URL(`${API_URL}/videos/list/`);
     videoIds.forEach(id => url.searchParams.append('video_ids', id));
     const response = await axios.get(url.toString());
     console.log(response.data, 'response.data');
-    
     return response.data;
   } catch (error) {
     console.error("Error fetching video list:", error.response?.data?.detail || error.message);
     throw error;
   }
 };
+
+export const getShortsList = async (shortIds) => {
+  try {
+    const url = new URL(`${API_URL}/shorts/list/`);
+    shortIds.forEach(id => url.searchParams.append('short_ids', id));
+    const response = await axios.get(url.toString());
+    console.log(response.data, 'response.data');
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching short list:", error.response?.data?.detail || error.message);
+    throw error;
+  }
+}
