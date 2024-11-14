@@ -1,5 +1,5 @@
 import Banner from "components/common/banner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { create_video, getVideos, getCurrentUser } from "api/api";
 import axios from "axios";
 import { BetoReach_api } from "api/model_api";
@@ -259,8 +259,8 @@ export default function Page2({ onChangePage, data }) {
       const video_info = {
         videoId: data.snippet.resourceId.videoId,
         language: language.language,
-        video_type: data.type,
-        use_captions: data.use_captions,
+        video_type: "Youtube link", //truyen vao tu page 1
+        use_captions: data.use_captions ? "True" : "False", //truyen vao tu page 1
         voice_name: voice.value,
       };
 
@@ -271,7 +271,7 @@ export default function Page2({ onChangePage, data }) {
         video_title: data.snippet.title,
         video_voice: voice.value,
         video_language: language.language,
-        video_type: data.type,
+        video_type: "Youtube link", //truyen vao tu page 1
         video_url: res,
       };
 
@@ -303,6 +303,14 @@ export default function Page2({ onChangePage, data }) {
       alert("An error occurred while adding the language. Please try again.");
     }
   };
+
+  const onAgreeHandler = useCallback(() => {
+    if (selectedLanguage && charVoice) {
+      addLanguage(selectedLanguage, charVoice);
+    } else {
+      alert("Please select both a language and a voice before creating a translation.");
+    }
+  }, [selectedLanguage, charVoice]);
 
   return (
     <div className="flex flex-col h-[95vh]">
@@ -546,15 +554,7 @@ export default function Page2({ onChangePage, data }) {
                     setRequiredConfirm: () => {
                       setRequiredConfirm(false);
                     },
-                    onAgree: () => {
-                      if (selectedLanguage && charVoice) {
-                        addLanguage(selectedLanguage, charVoice);
-                      } else {
-                        alert(
-                          "Please select both a language and a voice before creating a translation."
-                        );
-                      }
-                    },
+                    onAgree: onAgreeHandler,
                   })}
               </span>
             </div>

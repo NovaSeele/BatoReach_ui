@@ -18,7 +18,7 @@ export const BetoReach_api = {
                     "ngrok-skip-browser-warning": "69420",
                 },
             });
-            return response.data;
+            return response.json();
         } catch (error) {
             console.error("Error in translation request:", error);
             throw error;

@@ -113,7 +113,7 @@ export default function Page1({ onChangePage }) {
                   onChangePage(2, {
                     ...item,
                     type: "Youtube link",
-                    use_captions: false,
+                    use_captions: true,
                   });
                 }}
                 key={index}
